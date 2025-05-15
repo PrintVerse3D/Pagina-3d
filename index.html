@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Web Interactiva</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-logo-group">
+            <div class="navbar-logo">PrintVerse</div>
+        </div>
+        <ul class="navbar-links">
+            <li><a href="#" class="nav-link active" id="inicio-link">Inicio</a></li>
+            <li class="dropdown">
+                <a href="#" class="nav-link">Categorías</a>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Figuras</a></li>
+                    <li><a href="#">Decoración</a></li>
+                    <li><a href="#">Educativo</a></li>
+                    <li><a href="#">Otros</a></li>
+                </ul>
+            </li>
+            <li><a href="#" class="nav-link" id="todos-disenos-link">Todos los diseños</a></li>
+        </ul>
+        <form class="navbar-search" id="search-form" autocomplete="off">
+            <input type="text" placeholder="Buscar diseños..." id="search-input" />
+            <button type="submit"><span>&#128269;</span></button>
+        </form>
+    </nav>
+    <div class="animated-background"></div>
+    <div class="search-results" id="search-results"></div>
+    <div class="pagination" id="pagination"></div>
+    <div class="content" id="inicio-content">
+        <div class="inicio-title">Impresora ender 3</div>
+        <div class="inicio-img-container">
+            <img src="imagen/ender-3-2-removebg-preview.png" alt="Impresora 3D" class="inicio-img" id="img-especificaciones" style="cursor:pointer;" />
+        </div>
+    </div>
+    <!-- Modal de especificaciones -->
+    <div class="modal-overlay" id="modal-overlay" style="display:none;"></div>
+    <div class="modal-especificaciones" id="modal-especificaciones" style="display:none;">
+        <button class="modal-close" id="modal-close">&times;</button>
+        <h2>Especificaciones</h2>
+        <ul>
+            <li><b>Tecnología de impresión:</b> Modelado por deposición fundida (FDM)</li>
+            <li><b>Área de impresión:</b> 220 x 220 x 250 mm</li>
+            <li><b>Dimensiones del equipo:</b> 440 x 440 x 465 mm</li>
+            <li><b>Velocidad de impresión:</b> Hasta 180 mm/s</li>
+            <li><b>Materiales compatibles:</b> Filamento de 1,75 mm (PLA, TPU, ABS)</li>
+        </ul>
+    </div>
+    <div class="modal-img-overlay" id="modal-img-overlay" style="display:none;"></div>
+    <div class="modal-img-viewer" id="modal-img-viewer" style="display:none;">
+        <button class="modal-img-close" id="modal-img-close">&times;</button>
+        <img id="modal-img-big" src="" alt="Imagen ampliada" />
+    </div>
+    <script>
+    // Interactividad para el menú desplegable
+    document.querySelectorAll('.dropdown').forEach(drop => {
+        drop.addEventListener('mouseenter', () => {
+            drop.classList.add('open');
+        });
+        drop.addEventListener('mouseleave', () => {
+            drop.classList.remove('open');
+        });
+    });
+    // Animación de la barra de búsqueda
+    const searchInput = document.querySelector('.navbar-search input');
+    searchInput.addEventListener('focus', () => {
+        searchInput.parentElement.classList.add('focused');
+    });
+    searchInput.addEventListener('blur', () => {
+        searchInput.parentElement.classList.remove('focused');
+    });
+    // Variables para paginación
+    let resultadosActuales = [];
+
+    function mostrarResultados(resultados) {
+        const resultsDiv = document.getElementById('search-results');
+        document.getElementById('inicio-content').style.display = 'none';
+        resultadosActuales = resultados;
+        
+        if (resultados.length === 0) {
+            resultsDiv.innerHTML = '<div class="no-results">No se encontraron resultados.</div>';
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
+        
+        resultsDiv.innerHTML = resultados.map(d => `
+            <div class="result-card">
+                <img src="${d.img}" alt="${d.nombre}" class="result-img" />
+                <div class="result-info">
+                    <div class="result-title">${d.nombre}</div>
+                    <div class="result-category">${d.categoria}</div>
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('pagination').innerHTML = '';
+    }
+
+    // Lista simulada de diseños con imágenes
+    const diseños = [
+        { nombre: 'Llavero Egresados', categoria: 'Otros', img: 'Imagenes/1.jpg', keywords: ['egresados', 'educativo', 'llavero'] },
+        { nombre: 'Medalla Egresado', categoria: 'Educativo', img: 'Imagenes/2.png', keywords: ['medalla', 'educativo', 'egresado'] },
+        { nombre: 'Lapiz Letras', categoria: 'Educativo', img: 'Imagenes/3.webp', keywords: ['educativo', 'letras', 'lapiz'] },
+        { nombre: 'Elemento Aire', categoria: 'Decoración', img: 'Imagenes/4.webp', keywords: ['aire', 'elementos', 'decoración', 'cuadros', 'recuadros'] },
+        { nombre: 'Elemento Tierra', categoria: 'Decoración', img: 'Imagenes/5.webp', keywords: ['tierra', 'elementos', 'decoración', 'cuadros', 'recuadros'] },
+        { nombre: 'Elemento Fuego', categoria: 'Decoración', img: 'Imagenes/6.webp', keywords: ['fuego', 'elementos', 'decoración', 'cuadros', 'recuadros'] },
+        { nombre: 'Elemento Agua', categoria: 'Decoración', img: 'Imagenes/7.webp', keywords: ['agua', 'elementos', 'decoración', 'cuadros', 'recuadros'] },
+        { nombre: 'Escarapela 1', categoria: 'Educativo', img: 'Imagenes/Escarapela1.webp', keywords: ['escarapela', 'argentina', 'escuela', 'educativo'] },
+        { nombre: 'Escarapela 2', categoria: 'Educativo', img: 'Imagenes/Escarapela2.webp', keywords: ['escarapela', 'argentina', 'escuela', 'educativo'] },
+        { nombre: 'Escarapela 3', categoria: 'Educativo', img: 'Imagenes/Escarapela3.webp', keywords: ['escarapela', 'argentina', 'escuela', 'educativo'] },
+        { nombre: 'Escarapela 4', categoria: 'Educativo', img: 'Imagenes/Escarapela4.webp', keywords: ['escarapela', 'argentina', 'escuela', 'educativo'] },
+        { nombre: 'Llavero', categoria: 'Otros', img: 'Imagenes/llavero.webp', keywords: ['llavero', 'educativo'] },
+        { nombre: 'Porta Sahumerio 1', categoria: 'Otros', img: 'Imagenes/Portasahumerio.webp', keywords: ['porta', 'sahumerio', 'aroma', 'decoración', 'hogar'] },
+        { nombre: 'Porta Sahumerio 2', categoria: 'Otros', img: 'Imagenes/Portasahumerio2.webp', keywords: ['porta', 'sahumerio', 'aroma', 'decoración', 'hogar'] },
+        { nombre: 'Porta Sahumerio 3', categoria: 'Otros', img: 'Imagenes/Portasahumerio3.webp', keywords: ['porta', 'sahumerio', 'aroma', 'decoración', 'hogar'] },
+        { nombre: 'Porta Sahumerio 4', categoria: 'Otros', img: 'Imagenes/Portasahumerio4.webp', keywords: ['porta', 'sahumerio', 'aroma', 'decoración', 'hogar'] },
+        { nombre: 'Porta Sahumerio 5', categoria: 'Otros', img: 'Imagenes/Portasahumerio5.webp', keywords: ['porta', 'sahumerio', 'aroma', 'decoración', 'hogar'] },
+        { nombre: 'Porta Sahumerio 6', categoria: 'Otros', img: 'Imagenes/Portasahumerio6.webp', keywords: ['porta', 'sahumerio', 'aroma', 'decoración', 'hogar'] },
+        { nombre: 'Porta Sahumerio 7', categoria: 'Otros', img: 'Imagenes/portasahumeriio7.webp', keywords: ['porta', 'sahumerio', 'aroma', 'decoración', 'hogar'] },
+        { nombre: 'Braum', categoria: 'Figuras', img: 'figuras/Braum.png', keywords: ['braum', 'figura', 'league of legends', 'lol'] },
+        { nombre: 'Nunu', categoria: 'Figuras', img: 'figuras/Nunu .png', keywords: ['nunu', 'figura', 'league of legends', 'lol'] },
+        { nombre: 'Shen', categoria: 'Figuras', img: 'figuras/Shen.png', keywords: ['shen', 'figura', 'league of legends', 'lol'] },
+        { nombre: 'Galio', categoria: 'Figuras', img: 'figuras/Galio.png', keywords: ['galio', 'figura', 'league of legends', 'lol'] },
+        { nombre: 'Ashe', categoria: 'Figuras', img: 'figuras/Ashe.png', keywords: ['ashe', 'figura', 'league of legends', 'lol'] },
+        { nombre: 'Leona', categoria: 'Figuras', img: 'figuras/Leona.png', keywords: ['leona', 'figura', 'league of legends', 'lol'] },
+        { nombre: 'Senna', categoria: 'Figuras', img: 'figuras/senna.png', keywords: ['senna', 'figura', 'league of legends', 'lol'] }
+    ];
+    // Modificar función de búsqueda para usar keywords
+    function buscarDisenos(query) {
+        query = query.toLowerCase();
+        if (query === 'escuela') {
+            return diseños.filter(d => d.categoria === 'Educativo');
+        }
+        return diseños.filter(d =>
+            d.nombre.toLowerCase().includes(query) ||
+            d.categoria.toLowerCase().includes(query) ||
+            (d.keywords && d.keywords.some(k => k.toLowerCase().includes(query)))
+        );
+    }
+    // Evento de búsqueda
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const query = document.getElementById('search-input').value.trim().toLowerCase();
+        if (!query) {
+            document.getElementById('search-results').innerHTML = '';
+            return;
+        }
+        const resultados = buscarDisenos(query);
+        mostrarResultados(resultados);
+    });
+    document.getElementById('search-input').addEventListener('input', function(e) {
+        const query = e.target.value.trim().toLowerCase();
+        if (!query) {
+            document.getElementById('search-results').innerHTML = '';
+            return;
+        }
+        const resultados = buscarDisenos(query);
+        mostrarResultados(resultados);
+    });
+    // Mostrar todos los diseños al hacer clic en el botón correspondiente
+    document.getElementById('todos-disenos-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        mostrarResultados(diseños);
+        document.getElementById('inicio-content').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    // Mostrar solo los de la categoría Educativo al hacer clic en el submenú
+    document.querySelectorAll('.dropdown-menu a').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            const categoria = el.textContent.trim();
+            if (categoria === 'Educativo') {
+                const resultados = diseños.filter(d => d.categoria === 'Educativo');
+                mostrarResultados(resultados);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (categoria === 'Decoración') {
+                const resultados = diseños.filter(d => d.categoria === 'Decoración');
+                mostrarResultados(resultados);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (categoria === 'Otros') {
+                const resultados = diseños.filter(d => d.categoria === 'Otros');
+                mostrarResultados(resultados);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (categoria === 'Figuras') {
+                const resultados = diseños.filter(d => d.categoria === 'Figuras');
+                mostrarResultados(resultados);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    });
+    // Modal interactividad
+    const imgEspecificaciones = document.getElementById('img-especificaciones');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalEspecificaciones = document.getElementById('modal-especificaciones');
+    const modalClose = document.getElementById('modal-close');
+    imgEspecificaciones.addEventListener('click', () => {
+        modalOverlay.style.display = 'block';
+        modalEspecificaciones.style.display = 'block';
+        setTimeout(() => {
+            modalOverlay.classList.add('active');
+            modalEspecificaciones.classList.add('active');
+        }, 10);
+    });
+    function cerrarModal() {
+        modalOverlay.classList.remove('active');
+        modalEspecificaciones.classList.remove('active');
+        setTimeout(() => {
+            modalOverlay.style.display = 'none';
+            modalEspecificaciones.style.display = 'none';
+        }, 300);
+    }
+    modalClose.addEventListener('click', cerrarModal);
+    modalOverlay.addEventListener('click', cerrarModal);
+    // Cuando se limpie la búsqueda o se vuelva a inicio, limpiar paginación
+    document.getElementById('inicio-link').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        document.getElementById('search-results').innerHTML = '';
+        document.getElementById('pagination').innerHTML = '';
+        document.getElementById('inicio-content').style.display = 'flex';
+    });
+    // Modal para imagen ampliada
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('result-img')) {
+            document.getElementById('modal-img-big').src = e.target.src;
+            document.getElementById('modal-img-overlay').style.display = 'block';
+            document.getElementById('modal-img-viewer').style.display = 'flex';
+        }
+    });
+    document.getElementById('modal-img-close').onclick = cerrarModalImg;
+    document.getElementById('modal-img-overlay').onclick = cerrarModalImg;
+    function cerrarModalImg() {
+        document.getElementById('modal-img-overlay').style.display = 'none';
+        document.getElementById('modal-img-viewer').style.display = 'none';
+    }
+    </script>
+</body>
+</html> 
